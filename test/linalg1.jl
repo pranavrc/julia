@@ -27,7 +27,9 @@ for eltya in (Float16, Float32, Float64, Complex32, Complex64, Complex128, BigFl
         asym = a'+a                  # symmetric indefinite
         apd  = a'*a                 # symmetric positive-definite
 
-        ε = max(eps(abs(float(one(eltya)))),eps(abs(float(one(eltyb)))))
+        εa = eps(abs(float(one(eltya))))
+        εb = eps(abs(float(one(eltyb))))
+        ε = max(εa,εb)
 
 debug && println("\ntype of a: ", eltya, " type of b: ", eltyb, "\n")
 
@@ -51,7 +53,7 @@ debug && println("(Automatic) upper Cholesky factor")
 
         @test_approx_eq apd * inv(capd) eye(n)
         @test_approx_eq_eps a*(capd\(a'*b)) b 8000ε
-        @test_approx_eq det(capd) det(apd)
+        eltya != Float16 && @test abs((det(capd) - det(apd))/det(capd)) <= 10n*εa*κ/norm(apd)/(1-n*εa*κ/norm(apd)) # Taken from Higham p. 285, but multiplied by 10.
         @test_approx_eq logdet(capd) log(det(capd)) # logdet is less likely to overflow
 
 debug && println("lower Cholesky factor")
